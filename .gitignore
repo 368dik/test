@@ -3,6 +3,7 @@
 *.uvopt
 *.uvguix
 *.uvprojx
+*.uvguix.pjm
 
 DebugConfig/
 objects/
