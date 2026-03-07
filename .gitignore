@@ -1,0 +1,11 @@
+#keil
+*.uvoptx
+*.uvopt
+*.uvguix
+*.uvprojx
+
+DebugConfig/
+objects/
+Listings/
+.vscode/
+
