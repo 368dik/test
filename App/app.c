@@ -75,7 +75,9 @@ void App_Init(void)
     g_appState = APP_STATE_BOOT;
     g_heartbeat = 0;
 
+    /* TIM2 提供 1ms 心跳中断，驱动 SoftTimer_Tick1ms。 */
     Timer_Init();
+    /* 初始化软件定时器池。 */
     SoftTimer_SystemInit();
 
     Log_Init();
@@ -102,6 +104,7 @@ void App_Init(void)
 
     AppCli_Init();
 
+    /* 创建 2s 周期任务：到期后在主循环里执行 App_OnHeartbeat。 */
     g_heartbeatTimerId = SoftTimer_Create(APP_SAMPLE_PERIOD_MS, 1, App_OnHeartbeat, 0);
     SoftTimer_Start(g_heartbeatTimerId);
 
@@ -119,11 +122,14 @@ void App_Loop(void)
         g_appState = APP_STATE_RUN;
     }
 
+    /* 从 UART 驱动拉取已接收字节，投递到 CLI 环形缓冲区。 */
     while (BSP_UART1_TryReadByte(&rxByte))
     {
         AppCli_OnRxByte(rxByte);
     }
 
+    /* 解析并执行 CLI 命令。 */
     AppCli_Process();
+    /* 执行在 Tick1ms 中被置位 pending 的定时任务回调。 */
     SoftTimer_RunPending();
 }

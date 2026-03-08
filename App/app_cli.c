@@ -83,6 +83,7 @@ static void AppCli_ExecLine(void)
 /* CLI模块初始化 */
 void AppCli_Init(void)
 {
+    /* 初始化 CLI 接收环形缓冲区。 */
     RingBuffer_Init(&g_cliRxRb, g_cliRxMem, APP_CLI_RX_BUFFER_SIZE);
     g_lineLen = 0;
 }
@@ -90,6 +91,7 @@ void AppCli_Init(void)
 /* 接收单字节输入 */
 void AppCli_OnRxByte(uint8_t byte)
 {
+    /* 生产者：将收到的字节放入缓冲区，等待主循环消费。 */
     RingBuffer_Push(&g_cliRxRb, byte);
 }
 
@@ -98,12 +100,14 @@ void AppCli_Process(void)
 {
     uint8_t byte;
 
+    /* 消费者：持续从环形缓冲区取字节并拼接成一行命令。 */
     while (RingBuffer_Pop(&g_cliRxRb, &byte))
     {
         if (byte == '\r' || byte == '\n')
         {
             if (g_lineLen > 0)
             {
+                /* 收到换行，执行一条完整命令。 */
                 AppCli_ExecLine();
             }
             continue;
@@ -111,6 +115,7 @@ void AppCli_Process(void)
 
         if (g_lineLen < (APP_CLI_LINE_MAX_LEN - 1))
         {
+            /* 预留 1 字节给字符串结束符 '\0'。 */
             g_lineBuf[g_lineLen++] = (char)byte;
         }
     }
